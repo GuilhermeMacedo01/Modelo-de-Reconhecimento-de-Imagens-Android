@@ -36,29 +36,28 @@ fun NavGraphBuilder.imageDetailGraph() {
             mutableStateOf(imageBitmap)
         }
 
-        val image = InputImage.fromBitmap(imageBitmap, 0)
-
-        val options = ImageLabelerOptions.Builder()
-             .setConfidenceThreshold(0.5f)
-             .build()
-        val labeler = ImageLabeling.getClient(options)
-
-        labeler.process(image)
-            .addOnSuccessListener { labels ->
-                labels.forEach{
-                    val labelConfidence = "${it.text} - ${it.confidence}"
-                    Log.d("Log confiança no label:", labelConfidence);
-                }
-
-                description = labels.map{it.text}.toString()
-            }
-
 
         ImageDetailScreen(
             defaultImage = currentImage,
             description = description,
             onImageChange = {
                 currentImage = it
+                val image = InputImage.fromFilePath(context, it)
+
+                val options = ImageLabelerOptions.Builder()
+                    .setConfidenceThreshold(0.5f)
+                    .build()
+                val labeler = ImageLabeling.getClient(options)
+
+                labeler.process(image)
+                    .addOnSuccessListener { labels ->
+                        labels.forEach{
+                            val labelConfidence = "${it.text} - ${it.confidence}"
+                            Log.d("Log confiança no label:", labelConfidence);
+                        }
+
+                        description = labels.map{it.text}.toString()
+                    }
             }
         )
     }

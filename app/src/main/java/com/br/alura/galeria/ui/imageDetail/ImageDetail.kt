@@ -64,7 +64,7 @@ fun ImageDetailScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "GALERI-IA",
+                text = "Image Classificator",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.background,
@@ -112,12 +112,13 @@ fun ImageDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Tags:",
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.background
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = description,
-                    color = MaterialTheme.colorScheme.background
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
             }
         }
