@@ -1,6 +1,7 @@
 package com.br.alura.galeria.ui.gallery
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.br.alura.galeria.ImageUriManager
 import com.br.alura.galeria.data.ImageCategoryRepository
 import com.br.alura.galeria.data.ImageGroup
@@ -8,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,6 +22,14 @@ class GroupGalleryViewModel @Inject constructor(
     val uiState: StateFlow<GroupGalleryUiState>
         get() = _uiState.asStateFlow()
 
+    init {
+       viewModelScope.launch {
+           _uiState.value = _uiState.value.copy(
+               imageWithLabels = imageUriManager.getImageWithLabels()
+           )
+           groupImages()
+       }
+    }
 
     private fun groupImages() {
         val imagesWithLabels = _uiState.value.imageWithLabels

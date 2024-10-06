@@ -1,6 +1,6 @@
 package com.br.alura.galeria.ui.splashScreen
 
-import androidx.compose.runtime.mutableStateListOf
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.br.alura.galeria.ImageUriManager
@@ -8,12 +8,13 @@ import com.br.alura.galeria.data.ImageWithLabels
 import com.br.alura.galeria.dataStore.UserPreferencesDataStore
 import com.br.alura.galeria.mlkit.ImageClassifier
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -62,25 +63,27 @@ class SplashViewModel @Inject constructor(
 
     private fun classifyImages() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val imageUris = imageUriManager.getImageUris()
-                val imagesWithLabels = mutableStateListOf<ImageWithLabels>()
+            val imageUris = imageUriManager.getImageUris()
+            val imagesWithLabelsDeferred = mutableListOf<Deferred<ImageWithLabels>>()
 
-                imageUris.forEach { imageUri ->
-                    imagesWithLabels.add(
-                        ImageWithLabels(
-                            uri = imageUri,
-                            labels = emptyList()
-                        )
-                    )
-                }
-
-                imageUriManager.setImageWithLabels(imagesWithLabels)
-                _uiState.value = _uiState.value.copy(
-                    appState = AppState.Loaded,
-                    route = Route.GALLERY
+            imageUris.forEach { imageUri ->
+                val deferred = CompletableDeferred<ImageWithLabels>()
+                imageClassifier.classifyImage(
+                    imageUri = Uri.parse(imageUri).toString(),
+                    onSuccess = { labels ->
+                        deferred.complete(ImageWithLabels(uri = imageUri, labels = labels))
+                    }
                 )
+                imagesWithLabelsDeferred.add(deferred)
             }
+
+            val imagesWithLabels = imagesWithLabelsDeferred.awaitAll()
+
+            imageUriManager.setImageWithLabels(imagesWithLabels)
+            _uiState.value = _uiState.value.copy(
+                appState = AppState.Loaded,
+                route = Route.GALLERY
+            )
         }
     }
 }

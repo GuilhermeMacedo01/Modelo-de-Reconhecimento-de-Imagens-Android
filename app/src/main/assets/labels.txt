@@ -1,0 +1,4 @@
+0 Android
+1 Maçã
+2 Caneca Preta
+3 Caneca Comum

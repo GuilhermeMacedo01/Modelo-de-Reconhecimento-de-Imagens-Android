@@ -10,6 +10,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.br.alura.galeria.R
+import com.br.alura.galeria.extensions.cleanBrackets
+import com.br.alura.galeria.mlkit.ImageClassifier
 import com.br.alura.galeria.navigation.Destinations
 import com.br.alura.galeria.ui.imageDetail.ImageDetailScreen
 import com.google.mlkit.vision.common.InputImage
@@ -36,28 +38,19 @@ fun NavGraphBuilder.imageDetailGraph() {
             mutableStateOf(imageBitmap)
         }
 
-
+        val imageClassifier =ImageClassifier(context)
         ImageDetailScreen(
             defaultImage = currentImage,
             description = description,
             onImageChange = {
                 currentImage = it
-                val image = InputImage.fromFilePath(context, it)
-
-                val options = ImageLabelerOptions.Builder()
-                    .setConfidenceThreshold(0.5f)
-                    .build()
-                val labeler = ImageLabeling.getClient(options)
-
-                labeler.process(image)
-                    .addOnSuccessListener { labels ->
-                        labels.forEach{
-                            val labelConfidence = "${it.text} - ${it.confidence}"
-                            Log.d("Log confiança no label:", labelConfidence);
-                        }
-
-                        description = labels.map{it.text}.toString()
+                imageClassifier.classifyImage(
+                    imageUri = it.toString(),
+                    onSuccess = { labels ->
+                        description = labels.toString().cleanBrackets()
                     }
+                )
+
             }
         )
     }
